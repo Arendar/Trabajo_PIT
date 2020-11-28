@@ -15,6 +15,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
@@ -56,6 +57,10 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
     RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 1, 1);
     int screenCounter = 0;
+    
+    ArrayList <Bee> abejas= new ArrayList<>();
+    ArrayList <Blossom> flores = new ArrayList<>();
+    ArrayList <Fly> moscas = new ArrayList<>();
 
     
     public Game_4() throws Exception{
@@ -120,6 +125,8 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
      */  
     @Override
     public void actionPerformed(ActionEvent ae) {
+        
+        
        
         // Actions on Caperucita
         setDirection(lastKey);
@@ -127,11 +134,13 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
         // Moving Caperucita
         ridingHood.moveToNextPosition();
         
+        processCell();
+        
         // Check if Caperucita is in board limits
         setInLimits();
         
         // Logic to change to a new screen.
-        if (processCell() == 1){
+        if (flores.isEmpty()==true){
             screenCounter++;
             ridingHood.incLifes(1);
             loadNewBoard(screenCounter);
@@ -151,26 +160,55 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
     Si Caperucita está sobre una abeja añade su valor (negativo) al de 
     Caperucita y sigue en el tablero
     Devuelve el número de blossoms que hay en el tablero.
-    */    
-    private int processCell(){
+    */
+
+    private ArrayList <Bee> arrayBees (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Bee){
+                abejas.add((Bee) gObj);
+            }   
+        }
+        return abejas;
+    }
+    
+    private ArrayList <Blossom> arrayBlossoms (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Blossom){
+                flores.add((Blossom) gObj);
+            }   
+        }
+        return flores;
+    }
+    
+    private ArrayList <Fly> arrayFlies (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Fly){
+                moscas.add((Fly) gObj);
+            }   
+        }
+        return moscas;
+    }
+    
+    private void processCell(){
         Position rhPos = ridingHood.getPosition();
         for (IGameObject gObj: gObjs){
             if(gObj instanceof Blossom && rhPos.isEqual(gObj.getPosition())){
                 int v = ridingHood.getValue() + gObj.getValue();
                 ridingHood.setValue(v);
                 gObjs.remove(gObj);
+                flores.remove((Blossom) gObj);
             }
             else if(gObj instanceof Fly && rhPos.isEqual(gObj.getPosition())){
                 int v = ridingHood.getValue() + gObj.getValue();
                 ridingHood.setValue(v);
                 gObjs.remove(gObj);
+                moscas.remove((Fly) gObj);
             }
             else if(gObj instanceof Bee && rhPos.isEqual(gObj.getPosition())){
                 int v = ridingHood.getValue() + gObj.getValue();
                 ridingHood.setValue(v);
             }
         }
-        return gObjs.size();
     }
     
     /*
@@ -178,7 +216,7 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
     Si la hay se elimina del juego.
     Para determinar si ha pasado el borde calculamos lastBox
     */
-    private int beeBorder(){
+    private void beeBorder(){
         int lastBox = (CANVAS_WIDTH/boxSize) - 1;
         for (IGameObject gObj:gObjs){
             if(gObj instanceof Bee && (gObj.getPosition().x<0 
@@ -186,31 +224,22 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
                     gObj.getPosition().x> lastBox
                     ||gObj.getPosition().y > lastBox)){
                 gObjs.remove(gObj);
+                abejas.remove((Bee) gObj);
             }
         }
-        return gObjs.size();
     }
     
-    private int beeFlower(){
-                
-        ArrayList <Bee> abejas= new ArrayList<>();
-        
-        for (IGameObject gObj:gObjs){
-            if(gObj instanceof Bee){
-                abejas.add((Bee) gObj);
-            }   
-        }
+    private void beeFlower(){
         
         for (Bee abeja:abejas){
             for (IGameObject gObj:gObjs){
                 if(gObj instanceof Blossom && 
                         abeja.getPosition().equals(gObj.getPosition())){
                     gObjs.remove(gObj);
+                    flores.remove((Blossom)gObj);
                 }
             }
         }
-        
-        return gObjs.size();
     }
     
     /*
@@ -232,6 +261,51 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
             case LEFT_KEY:
                 ridingHood.moveLeft();
                 break; 
+        }
+    }
+    
+    private void movementFly(){
+        int lastBox = (CANVAS_WIDTH/boxSize) - 1;
+        
+        Random masMenosUno = new Random();
+        for (Fly mosca:moscas){
+            mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(2)));
+            mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(2)));
+            if(mosca.getPosition().getX() < 0){
+                mosca.position.x=0;
+            }
+            else if(mosca.getPosition().getX() > lastBox){
+                mosca.position.x=lastBox;
+            }
+            
+            if(mosca.getPosition().getY() < 0){
+                mosca.position.y=0;
+            }
+            else if(mosca.getPosition().getY() > lastBox){
+                mosca.position.y=lastBox;
+            }
+        }    
+    }
+    
+    private void movementBee (){
+        for (Bee abeja: abejas){
+            if(flores.isEmpty()== false){
+                Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
+                approachTo(abeja.getPosition(), cerca.getPosition());
+            }
+        }
+    }
+    
+    /*
+    Este método permite a las abejas moverse hacía el objeto.
+    */
+    
+    private void approachTo(Position p1, Position p2){
+        if (p1.x != p2.x){
+            p1.x = p1.x > p2.x? p1.x-1:p2.x+1;
+        }
+        if (p1.y != p2.y){
+            p1.y = p1.y > p2.y? p1.y-1:p1.y+1;
         }
     }
     
@@ -268,24 +342,31 @@ public class Game_4 extends JFrame implements KeyListener, ActionListener {
               gObjs.add(new Blossom(new Position(2,8), 4, 10));
               gObjs.add(new Blossom(new Position(8,8), 10, 10));
               gObjs.add(new Blossom(new Position(8,2), 4, 10));
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms(); 
               break;
             case 1:
-                String path = "src/main/resources/games/game.txt";
-                System.out.println("Loading objects");
-                JSONArray jArray = FileUtilities.readJsonsFromFile(path);
-                if (jArray != null){
-                    for (int i = 0; i < jArray.length(); i++){
-                        JSONObject jObj = jArray.getJSONObject(i);
-                        String typeLabel = jObj.getString(TypeLabel);
-                        gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
-                    }                       
-                }
-                break;
+              gObjs.add(new Blossom(new Position(1,8), 10, 10));
+              gObjs.add(new Blossom(new Position(2,7), 4, 10));
+              gObjs.add(new Blossom(new Position(3,6), 10, 10));
+              gObjs.add(new Blossom(new Position(4,5), 4, 10));
+              gObjs.add(new Blossom(new Position(5,4), 10, 10));
+              gObjs.add(new Blossom(new Position(6,3), 4, 10));
+              gObjs.add(new Blossom(new Position(7,2), 10, 10));
+              gObjs.add(new Blossom(new Position(8,1), 4, 10));
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+              break;
             default:
               gObjs.add(new Blossom(new Position(2,2), 10, 10));
               gObjs.add(new Blossom(new Position(2,8), 4, 10));
               gObjs.add(new Blossom(new Position(8,8), 10, 10));
-              gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+              gObjs.add(new Blossom(new Position(8,2), 4, 10)); 
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
         }        
     }
     

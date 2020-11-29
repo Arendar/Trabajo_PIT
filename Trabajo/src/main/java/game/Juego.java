@@ -5,6 +5,8 @@
  */
 package game;
 
+import common.FileUtilities;
+import static common.IToJsonObject.TypeLabel;
 import static game.Game_2.CANVAS_WIDTH;
 import static game.Game_2.DOWN_KEY;
 import static game.Game_2.LEFT_KEY;
@@ -35,6 +37,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.EtchedBorder;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import views.boxes.BoxesFactory;
 import views.icons.IconsFactory;
 
@@ -113,7 +117,16 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         Titulo2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         
         nuevaPartida= new JButton("Nueva partida");
-        nuevaPartida.addActionListener(this);
+        nuevaPartida.addActionListener(new ActionListener(){
+                    @Override
+                    public void actionPerformed(ActionEvent ae){
+                        System.out.println("Escoger Vista");
+                        Juego.this.setEnabled(false);
+                        vista.setVisible(true);
+                        
+                    }
+                }
+        );
         
         escogerVista= new JButton ("Escoger Vista");
         escogerVista.addActionListener(new ActionListener(){
@@ -336,5 +349,43 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         } 
     }
     
+    private void loadNewBoard(int counter){
+        switch(counter){
+            
+            case 0:
+              break;
+            
+            case 1: 
+              gObjs.add(new Blossom(new Position(2,2), 10, 10));
+              gObjs.add(new Blossom(new Position(2,8), 4, 10));
+              gObjs.add(new Blossom(new Position(8,8), 10, 10));
+              gObjs.add(new Blossom(new Position(8,2), 4, 10));
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+              break;
+            case 2:
+              gObjs.add(new Blossom(new Position(1,8), 10, 10));
+              gObjs.add(new Blossom(new Position(2,7), 4, 10));
+              gObjs.add(new Blossom(new Position(3,6), 10, 10));
+              gObjs.add(new Blossom(new Position(4,5), 4, 10));
+              gObjs.add(new Blossom(new Position(5,4), 10, 10));
+              gObjs.add(new Blossom(new Position(6,3), 4, 10));
+              gObjs.add(new Blossom(new Position(7,2), 10, 10));
+              gObjs.add(new Blossom(new Position(8,1), 4, 10));
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+                break;
+            default:
+              gObjs.add(new Blossom(new Position(2,2), 10, 10));
+              gObjs.add(new Blossom(new Position(2,8), 4, 10));
+              gObjs.add(new Blossom(new Position(8,8), 10, 10));
+              gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+        }        
+    }
     
 }

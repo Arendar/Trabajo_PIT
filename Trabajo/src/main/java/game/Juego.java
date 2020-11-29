@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -73,6 +74,11 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
     RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
     int screenCounter = 0;
+    
+    ArrayList <Bee> abejas= new ArrayList<>();
+    ArrayList <Blossom> flores = new ArrayList<>();
+    ArrayList <Fly> moscas = new ArrayList<>();
+
     
     public Juego () throws Exception{
         
@@ -256,6 +262,33 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         
+    }
+    
+    private ArrayList <Bee> arrayBees (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Bee){
+                abejas.add((Bee) gObj);
+            }   
+        }
+        return abejas;
+    }
+    
+    private ArrayList <Blossom> arrayBlossoms (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Blossom){
+                flores.add((Blossom) gObj);
+            }   
+        }
+        return flores;
+    }
+    
+    private ArrayList <Fly> arrayFlies (){
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Fly){
+                moscas.add((Fly) gObj);
+            }   
+        }
+        return moscas;
     }
     
         /*

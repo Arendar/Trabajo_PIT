@@ -303,6 +303,59 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         }
         return moscas;
     }
+    private void processCell(){
+        Position rhPos = ridingHood.getPosition();
+        for (IGameObject gObj: gObjs){
+            if(gObj instanceof Blossom && rhPos.isEqual(gObj.getPosition())){
+                int v = ridingHood.getValue() + gObj.getValue();
+                ridingHood.setValue(v);
+                gObjs.remove(gObj);
+                flores.remove((Blossom) gObj);
+            }
+            else if(gObj instanceof Fly && rhPos.isEqual(gObj.getPosition())){
+                int v = ridingHood.getValue() + gObj.getValue();
+                ridingHood.setValue(v);
+                gObjs.remove(gObj);
+                moscas.remove((Fly) gObj);
+            }
+            else if(gObj instanceof Bee && rhPos.isEqual(gObj.getPosition())){
+                int v = ridingHood.getValue() + gObj.getValue();
+                ridingHood.setValue(v);
+            }
+        }
+    }
+    
+    /*
+    Comprueba si hay alguna abeja por los bordes del tablero. 
+    Si la hay se elimina del juego.
+    Para determinar si ha pasado el borde calculamos lastBox
+    */
+    private void beeBorder(){
+        int lastBox = (CANVAS_WIDTH/boxSize) - 1;
+        for (IGameObject gObj:gObjs){
+            if(gObj instanceof Bee && (gObj.getPosition().x<0 
+                    || gObj.getPosition().y<0||
+                    gObj.getPosition().x> lastBox
+                    ||gObj.getPosition().y > lastBox)){
+                gObjs.remove(gObj);
+                abejas.remove((Bee) gObj);
+            }
+        }
+    }
+    
+    private void beeFlower(){
+        
+        for (Bee abeja:abejas){
+            for (IGameObject gObj:gObjs){
+                if(gObj instanceof Blossom && 
+                        abeja.getPosition().equals(gObj.getPosition())){
+                    gObjs.remove(gObj);
+                    flores.remove((Blossom)gObj);
+                }
+            }
+        }
+    }
+    
     
         /*
     Fija la dirección de caperucita.

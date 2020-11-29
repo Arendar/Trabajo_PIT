@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
@@ -54,6 +55,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     public static final int LEFT_KEY  = 37;
     public static final int SPACE_KEY = 32;
     int lastKey = DOWN_KEY;
+    boolean enableKey= false;
     
     JButton nuevaPartida, escogerVista, cargarPartida, cuadrados, simbolos, volver, guardar;
     JPanel opciones, titulo1, vistas, imagenes;
@@ -92,6 +94,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         
         //Inicializar elementos
         gObjs.add(ridingHood);
+        loadNewBoard(0);
         
         BoxesFactory cajas = new BoxesFactory();
         IconsFactory iconos = new IconsFactory();
@@ -120,10 +123,14 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         nuevaPartida.addActionListener(new ActionListener(){
                     @Override
                     public void actionPerformed(ActionEvent ae){
-                        System.out.println("Escoger Vista");
-                        Juego.this.setEnabled(false);
-                        vista.setVisible(true);
-                        
+                        System.out.println("Nueva partida");
+                        screenCounter =1;
+                        enableKey=true;
+                        loadNewBoard(screenCounter);
+                        ridingHood.setPosition(new Position(0,0));
+                        ridingHood.setValue(0);
+                        ridingHood.setLifes(1);
+                        timer = new Timer (tick, Juego.this);
                     }
                 }
         );
@@ -248,7 +255,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         
         game.addKeyListener(this);
         game.setFocusable(true);
-        timer = new Timer (tick, this);
+
     }
 
     @Override
@@ -257,14 +264,16 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
 
     @Override
     public void keyPressed(KeyEvent ke) {
-       lastKey = ke.getKeyCode(); 
-        if (lastKey == SPACE_KEY){
-            if (timer.isRunning()){
-                    timer.stop();
-                }
-                else{
-                    timer.start();
-                }
+        if(enableKey == true){
+            lastKey = ke.getKeyCode(); 
+            if (lastKey == SPACE_KEY){
+                if (timer.isRunning()){
+                        timer.stop();
+                    }
+                    else{
+                        timer.start();
+                    }
+            }
         }
     }
 
@@ -376,6 +385,51 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
             case LEFT_KEY:
                 ridingHood.moveLeft();
                 break; 
+        }
+    }
+    
+    private void movementFly(){
+        int lastBox = (CANVAS_WIDTH/boxSize) - 1;
+        
+        Random masMenosUno = new Random();
+        for (Fly mosca:moscas){
+            mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(2)));
+            mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(2)));
+            if(mosca.getPosition().getX() < 0){
+                mosca.position.x=0;
+            }
+            else if(mosca.getPosition().getX() > lastBox){
+                mosca.position.x=lastBox;
+            }
+            
+            if(mosca.getPosition().getY() < 0){
+                mosca.position.y=0;
+            }
+            else if(mosca.getPosition().getY() > lastBox){
+                mosca.position.y=lastBox;
+            }
+        }    
+    }
+    
+    private void movementBee (){
+        for (Bee abeja: abejas){
+            if(flores.isEmpty()== false){
+                Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
+                approachTo(abeja.getPosition(), cerca.getPosition());
+            }
+        }
+    }
+    
+    /*
+    Este método permite a las abejas moverse hacía el objeto.
+    */
+    
+    private void approachTo(Position p1, Position p2){
+        if (p1.x != p2.x){
+            p1.x = p1.x > p2.x? p1.x-1:p2.x+1;
+        }
+        if (p1.y != p2.y){
+            p1.y = p1.y > p2.y? p1.y-1:p1.y+1;
         }
     }
     

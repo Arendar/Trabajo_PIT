@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -61,10 +62,19 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     Timer timer;
     int tick = 200;
     
+    // Game Variables
+    ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
+    RidingHood_3 ridingHood = new RidingHood_3(new Position(0,0), 1, 1, gObjs);
+    int screenCounter = 0;
+    
     public Juego () throws Exception{
         
         super("Game_1");
         
+        //Inicializar elementos
+        gObjs.add(ridingHood);
+        
+        ////////////////////////////////////////////////////////////
         //Crear ventanas menus
         this.setLayout(new BorderLayout());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  
@@ -168,6 +178,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         setSize (400, 400);
         setVisible(true);
         
+        //////////////////////////////////////////////////////////////////
         //Crear ventana juego
         game= new JFrame();
         
@@ -178,8 +189,11 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         
         menuFile.add(itSave);
         barra.add(menuFile);
+        barra.setBorder(BorderFactory.createLineBorder(Color.blue));
+        game.setJMenuBar(barra);
         
-        dataLabel= new JLabel();
+        
+        dataLabel= new JLabel(ridingHood.toString());
         dataLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED)); 
         dataLabel.setPreferredSize(new Dimension(120,40));
         dataLabel.setHorizontalAlignment(SwingConstants.CENTER);

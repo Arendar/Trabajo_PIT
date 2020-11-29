@@ -5,6 +5,11 @@
  */
 package game;
 
+import static game.Game_2.CANVAS_WIDTH;
+import static game.Game_2.DOWN_KEY;
+import static game.Game_2.LEFT_KEY;
+import static game.Game_2.RIGTH_KEY;
+import static game.Game_2.UP_KEY;
 import static game.Game_3.CANVAS_WIDTH;
 import static game.Game_3.SPACE_KEY;
 import java.awt.BorderLayout;
@@ -29,6 +34,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.border.EtchedBorder;
+import views.boxes.BoxesFactory;
+import views.icons.IconsFactory;
 
 /**
  *
@@ -64,15 +71,20 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
-    RidingHood_3 ridingHood = new RidingHood_3(new Position(0,0), 1, 1, gObjs);
+    RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
     int screenCounter = 0;
     
     public Juego () throws Exception{
         
         super("Game_1");
         
+
+        
         //Inicializar elementos
         gObjs.add(ridingHood);
+        
+        BoxesFactory cajas = new BoxesFactory();
+        IconsFactory iconos = new IconsFactory();
         
         ////////////////////////////////////////////////////////////
         //Crear ventanas menus
@@ -125,6 +137,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     @Override
                     public void actionPerformed(ActionEvent ae){
                         System.out.println("Se ha escogido cuadrados");
+                        canvas.setViewsFamily(cajas);
                     }
                 }
         );
@@ -135,6 +148,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     @Override
                     public void actionPerformed(ActionEvent ae){
                         System.out.println("Se ha escogido símbolos");
+                        canvas.setViewsFamily(iconos);
                     }
                 }
         );
@@ -208,11 +222,14 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         game.getContentPane().add(canvasFrame);
         game.getContentPane().add(dataLabel, BorderLayout.SOUTH);
         
-        game.setSize (CANVAS_WIDTH + 40, CANVAS_WIDTH + 80);
+        game.setSize (CANVAS_WIDTH + 40, CANVAS_WIDTH + 120);
         game.setResizable(false);
         game.setVisible(true);         
         game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);   
         
+        game.addKeyListener(this);
+        game.setFocusable(true);
+        timer = new Timer (tick, this);
     }
 
     @Override
@@ -238,21 +255,52 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getSource().equals(nuevaPartida)){
-            
-        }else if (e.getSource().equals(cargarPartida)){
-            
-        }else if(e.getSource().equals(escogerVista)){
-            
+        
+    }
+    
+        /*
+    Fija la dirección de caperucita.
+    Caperucita se moverá en esa dirección cuando se invoque
+    su método moveToNextPosition.
+    */    
+    private void setDirection(int lastKey){
+        switch (lastKey) {
+            case UP_KEY:  
+                ridingHood.moveUp();
+                break;
+            case DOWN_KEY:
+                ridingHood.moveDown();                    
+                break;
+            case RIGTH_KEY:
+                ridingHood.moveRigth();
+                break;
+            case LEFT_KEY:
+                ridingHood.moveLeft();
+                break; 
+        }
+    }
+    
+    /*
+    Comprueba que Caperucita no se sale del tablero.
+    En caso contrario corrige su posición
+    */
+    private void setInLimits(){
+        
+        int lastBox = (CANVAS_WIDTH/boxSize) - 1;
+        
+        if (ridingHood.getPosition().getX() < 0){
+            ridingHood.position.x = 0;
+        }
+        else if ( ridingHood.getPosition().getX() > lastBox ){
+            ridingHood.position.x = lastBox;
         }
         
-        if(e.getSource().equals(cuadrados)){
-            
-        }else if(e.getSource().equals(simbolos)){
-            
-        }else if(e.getSource().equals(volver)){
-            
+        if (ridingHood.getPosition().getY() < 0){
+            ridingHood.position.y = 0;
         }
+        else if (ridingHood.getPosition().getY() > lastBox){
+            ridingHood.position.y = lastBox;
+        } 
     }
     
     

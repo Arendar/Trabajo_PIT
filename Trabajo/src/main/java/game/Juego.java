@@ -136,6 +136,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                                 gObjs.remove(borrar);
                             }
                         }
+                        flores.clear();
                         loadNewBoard(screenCounter);
                         ridingHood.setPosition(new Position(0,0));
                         ridingHood.setValue(0);

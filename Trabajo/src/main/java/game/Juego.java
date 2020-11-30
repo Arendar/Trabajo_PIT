@@ -76,6 +76,10 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     Timer timer;
     int tick = 200;
     
+    //Timer falso enemigos
+    int timerFly=0;
+    int timerBee=0;
+    
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
     RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
@@ -284,6 +288,51 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         
+        // Actions on Caperucita
+        setDirection(lastKey);
+        
+        // Moving Caperucita
+        ridingHood.moveToNextPosition();
+        
+        // Check if Caperucita is in board limits
+        setInLimits();
+        
+        //Moving abejas
+        if(timerBee==8){
+            movementBee();
+            timerBee=0;
+        }else{
+            timerBee++;
+        }
+        
+        //Moving moscas
+        if(timerFly==6){
+            movementFly();
+            timerFly=0;
+        }else{
+            timerFly++;
+        }
+        
+        //Comprobación posición abejas sobre las flores y los bordes.
+        beeFlower();
+        beeBorder();
+        
+        //Comprueba si hay otro objeto sobre caperucita.
+        processCell();
+        
+
+        
+        // Logic to change to a new screen.
+        if (flores.isEmpty()==true){
+            screenCounter++;
+            ridingHood.incLifes(1);
+            loadNewBoard(screenCounter);
+        }
+        
+        // Updating graphics and labels
+        dataLabel.setText(ridingHood.toString());
+        canvas.drawObjects(gObjs); 
+        
     }
     
     private ArrayList <Bee> arrayBees (){
@@ -417,6 +466,10 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
                 approachTo(abeja.getPosition(), cerca.getPosition());
             }
+            else{
+                abeja.getPosition().x++;
+                abeja.getPosition().y++;
+            }
         }
     }
     
@@ -443,23 +496,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         }
     }
     
-    /*
-            if(p1.x > p2.x){
-                p1.x-1;
-            }else
-            if(p1.x < p2.x){
-                p1.x+1;
-            }
-        }
-        if(p1.y != p2.y){
-            if(p1.y > p2.y){
-                p1.y-1;
-            }else
-            if(p1.y < p2.y){
-                p1.y+1;
-            }
-        }
-    */
+
     
     /*
     Comprueba que Caperucita no se sale del tablero.

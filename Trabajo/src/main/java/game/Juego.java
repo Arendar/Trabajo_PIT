@@ -426,12 +426,40 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     
     private void approachTo(Position p1, Position p2){
         if (p1.x != p2.x){
-            p1.x = p1.x > p2.x? p1.x-1:p2.x+1;
+            if(p1.x > p2.x){
+             p1.x= p1.x-1;
+            }else
+            if(p1.x < p2.x){
+               p1.x= p1.x+1;
+            }
         }
-        if (p1.y != p2.y){
-            p1.y = p1.y > p2.y? p1.y-1:p1.y+1;
+        if(p1.y != p2.y){
+            if(p1.y > p2.y){
+               p1.y= p1.y-1;
+            }else
+            if(p1.y < p2.y){
+               p1.y= p1.y+1;
+            }
         }
     }
+    
+    /*
+            if(p1.x > p2.x){
+                p1.x-1;
+            }else
+            if(p1.x < p2.x){
+                p1.x+1;
+            }
+        }
+        if(p1.y != p2.y){
+            if(p1.y > p2.y){
+                p1.y-1;
+            }else
+            if(p1.y < p2.y){
+                p1.y+1;
+            }
+        }
+    */
     
     /*
     Comprueba que Caperucita no se sale del tablero.

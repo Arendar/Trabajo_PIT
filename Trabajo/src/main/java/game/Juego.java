@@ -281,12 +281,16 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 if (timer.isRunning()){
                         timer.stop();
                         menuFile.setEnabled(true);
-                        opciones.setEnabled(true);
+                        nuevaPartida.setEnabled(true);
+                        cargarPartida.setEnabled(true);
+                        escogerVista.setEnabled(true);
                     }
                     else{
                         timer.start();
                         menuFile.setEnabled(false);
-                        opciones.setEnabled(false);
+                        nuevaPartida.setEnabled(false);
+                        cargarPartida.setEnabled(false);
+                        escogerVista.setEnabled(false);
                     }
             }
         }

@@ -340,6 +340,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         // Logic to change to a new screen.
         if (flores.isEmpty()==true){
             screenCounter++;
+            if(screenCounter > 9)
+                screenCounter=7;
             ridingHood.incLifes(1);
             loadNewBoard(screenCounter);
         }

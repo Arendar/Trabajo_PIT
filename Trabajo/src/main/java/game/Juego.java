@@ -130,10 +130,9 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                         System.out.println("Nueva partida");
                         screenCounter =1;
                         enableKey=true;
+                        gObjs.clear();
+                        RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
                         loadNewBoard(screenCounter);
-                        ridingHood.setPosition(new Position(0,0));
-                        ridingHood.setValue(0);
-                        ridingHood.setLifes(1);
                         timer = new Timer (tick, Juego.this);
                     }
                 }

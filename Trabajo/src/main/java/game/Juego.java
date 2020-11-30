@@ -14,6 +14,7 @@ import static game.Game_2.RIGTH_KEY;
 import static game.Game_2.UP_KEY;
 import static game.Game_3.CANVAS_WIDTH;
 import static game.Game_3.SPACE_KEY;
+import game.RidingHood_2;
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.Color;
@@ -130,10 +131,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                         System.out.println("Nueva partida");
                         screenCounter =1;
                         enableKey=true;
-                        gObjs.clear();
-                        RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
-                        canvas.drawObjects(gObjs); 
+                        for( IGameObject borrar:gObjs){
+                            if(borrar != ridingHood){
+                                gObjs.remove(borrar);
+                            }
+                        }
                         loadNewBoard(screenCounter);
+                        ridingHood.setPosition(new Position(0,0));
+                        ridingHood.setValue(0);
+                        ridingHood.setLifes(1);
                         timer = new Timer (tick, Juego.this);
                     }
                 }

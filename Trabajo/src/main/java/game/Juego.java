@@ -132,6 +132,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                         enableKey=true;
                         gObjs.clear();
                         RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
+                        canvas.drawObjects(gObjs); 
                         loadNewBoard(screenCounter);
                         timer = new Timer (tick, Juego.this);
                     }

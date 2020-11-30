@@ -280,9 +280,13 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
             if (lastKey == SPACE_KEY){
                 if (timer.isRunning()){
                         timer.stop();
+                        menuFile.setEnabled(true);
+                        opciones.setEnabled(true);
                     }
                     else{
                         timer.start();
+                        menuFile.setEnabled(false);
+                        opciones.setEnabled(false);
                     }
             }
         }

@@ -80,6 +80,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     //Timer falso enemigos
     int timerFly=0;
     int timerBee=0;
+    int moveBee=8;
+    int moveFly=6;
     
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
@@ -313,7 +315,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         setInLimits();
         
         //Moving abejas
-        if(timerBee==8){
+        if(timerBee==moveBee){
             movementBee();
             timerBee=0;
         }else{
@@ -321,7 +323,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         }
         
         //Moving moscas
-        if(timerFly==6){
+        if(timerFly==moveFly){
             movementFly();
             timerFly=0;
         }else{
@@ -342,6 +344,11 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
             screenCounter++;
             if(screenCounter > 9)
                 screenCounter=7;
+            for(IGameObject delete:gObjs){
+                if(delete != ridingHood){
+                    gObjs.remove(delete);
+                }
+            }
             ridingHood.incLifes(1);
             loadNewBoard(screenCounter);
         }
@@ -547,77 +554,113 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
             case 1: 
               JSONArray jArray = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa1.txt");
               if (jArray != null){
-                        gObjs = new ConcurrentLinkedQueue<>();
-                        for (int i = 0; i < jArray.length(); i++){
+                  for (int i = 0; i < jArray.length(); i++){
                             JSONObject jObj = jArray.getJSONObject(i);
                             String typeLabel = jObj.getString(TypeLabel);
                             gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
-                        }
-                        canvas.drawObjects(gObjs);
+                  }
+                  canvas.drawObjects(gObjs);
               }
               arrayBees();
               arrayFlies();
               arrayBlossoms();
               break;
             case 2:
-              gObjs.add(new Blossom(new Position(1,8), 10, 10));
-              gObjs.add(new Blossom(new Position(2,7), 4, 10));
-              gObjs.add(new Blossom(new Position(3,6), 10, 10));
-              gObjs.add(new Blossom(new Position(4,5), 4, 10));
-              gObjs.add(new Blossom(new Position(5,4), 10, 10));
-              gObjs.add(new Blossom(new Position(6,3), 4, 10));
-              gObjs.add(new Blossom(new Position(7,2), 10, 10));
-              gObjs.add(new Blossom(new Position(8,1), 4, 10));
+              JSONArray jArray1 = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa2.txt");
+              if (jArray1 != null){
+                  gObjs = new ConcurrentLinkedQueue<>();
+                  for (int i = 0; i < jArray1.length(); i++){
+                            JSONObject jObj = jArray1.getJSONObject(i);
+                            String typeLabel = jObj.getString(TypeLabel);
+                            gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                  }
+                  canvas.drawObjects(gObjs);
+              }
               arrayBees();
               arrayFlies();
               arrayBlossoms();
               break;
             case 3:
-              gObjs.add(new Blossom(new Position(2,2), 10, 10));
-              gObjs.add(new Blossom(new Position(2,8), 4, 10));
-              gObjs.add(new Blossom(new Position(8,8), 10, 10));
-              gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+              JSONArray jArray2 = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa3.txt");
+              if (jArray2 != null){
+                  gObjs = new ConcurrentLinkedQueue<>();
+                  for (int i = 0; i < jArray2.length(); i++){
+                            JSONObject jObj = jArray2.getJSONObject(i);
+                            String typeLabel = jObj.getString(TypeLabel);
+                            gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                  }
+                  canvas.drawObjects(gObjs);
+              }
               arrayBees();
               arrayFlies();
               arrayBlossoms();
               break;
               
             case 4: 
-              break;
+                JSONArray jArray3 = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa4.txt");
+                if (jArray3 != null){
+                  gObjs = new ConcurrentLinkedQueue<>();
+                  for (int i = 0; i < jArray3.length(); i++){
+                            JSONObject jObj = jArray3.getJSONObject(i);
+                            String typeLabel = jObj.getString(TypeLabel);
+                            gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                  }
+                  canvas.drawObjects(gObjs);
+              }
+                break;
               
             case 5:
-              break;
+                JSONArray jArray4 = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa5.txt");
+                if (jArray4 != null){
+                    gObjs = new ConcurrentLinkedQueue<>();
+                    for (int i = 0; i < jArray4.length(); i++){
+                        JSONObject jObj = jArray4.getJSONObject(i);
+                        String typeLabel = jObj.getString(TypeLabel);
+                        gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                    }
+                canvas.drawObjects(gObjs);
+                }
+                break;
               
             case 6:
-                
-              break;
+                JSONArray jArray5 = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa6.txt");
+                if (jArray5 != null){
+                    gObjs = new ConcurrentLinkedQueue<>();
+                    for (int i = 0; i < jArray5.length(); i++){
+                        JSONObject jObj = jArray5.getJSONObject(i);
+                        String typeLabel = jObj.getString(TypeLabel);
+                        gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                    }
+                canvas.drawObjects(gObjs);
+                }
+                break;
               
             case 7:
-              break;
+                break;
               
             case 8:
-              gObjs.add(new Blossom(new Position(1,8), 10, 10));
-              gObjs.add(new Blossom(new Position(2,7), 4, 10));
-              gObjs.add(new Blossom(new Position(3,6), 10, 10));
-              gObjs.add(new Blossom(new Position(4,5), 4, 10));
-              gObjs.add(new Blossom(new Position(5,4), 10, 10));
-              gObjs.add(new Blossom(new Position(6,3), 4, 10));
-              gObjs.add(new Blossom(new Position(7,2), 10, 10));
-              gObjs.add(new Blossom(new Position(8,1), 4, 10));
-              arrayBees();
-              arrayFlies();
-              arrayBlossoms();
-              break;
+                gObjs.add(new Blossom(new Position(1,8), 10, 10));
+                gObjs.add(new Blossom(new Position(2,7), 4, 10));
+                gObjs.add(new Blossom(new Position(3,6), 10, 10));
+                gObjs.add(new Blossom(new Position(4,5), 4, 10));
+                gObjs.add(new Blossom(new Position(5,4), 10, 10));
+                gObjs.add(new Blossom(new Position(6,3), 4, 10));
+                gObjs.add(new Blossom(new Position(7,2), 10, 10));
+                gObjs.add(new Blossom(new Position(8,1), 4, 10));
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
+                break;
             
             case 9:
-              gObjs.add(new Blossom(new Position(2,2), 10, 10));
-              gObjs.add(new Blossom(new Position(2,8), 4, 10));
-              gObjs.add(new Blossom(new Position(8,8), 10, 10));
-              gObjs.add(new Blossom(new Position(8,2), 4, 10));  
-              arrayBees();
-              arrayFlies();
-              arrayBlossoms();
-              break;
+                gObjs.add(new Blossom(new Position(2,2), 10, 10));
+                gObjs.add(new Blossom(new Position(2,8), 4, 10));
+                gObjs.add(new Blossom(new Position(8,8), 10, 10));
+                gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
+                break;
         }        
     }
     

@@ -388,13 +388,13 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 flores.remove((Blossom) gObj);
             }
             else if(gObj instanceof Fly && rhPos.isEqual(gObj.getPosition())){
-                int v = ridingHood.getValue() + gObj.getValue();
+                int v = ridingHood.getValue() - gObj.getValue();
                 ridingHood.setValue(v);
                 gObjs.remove(gObj);
                 moscas.remove((Fly) gObj);
             }
             else if(gObj instanceof Bee && rhPos.isEqual(gObj.getPosition())){
-                int v = ridingHood.getValue() + gObj.getValue();
+                int v = ridingHood.getValue() - gObj.getValue();
                 ridingHood.setValue(v);
             }
         }
@@ -545,10 +545,16 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
               break;
             
             case 1: 
-              gObjs.add(new Blossom(new Position(2,2), 10, 10));
-              gObjs.add(new Blossom(new Position(2,8), 4, 10));
-              gObjs.add(new Blossom(new Position(8,8), 10, 10));
-              gObjs.add(new Blossom(new Position(8,2), 4, 10));
+              JSONArray jArray = FileUtilities.readJsonsFromFile("src/main/resources/maps/mapa1.txt");
+              if (jArray != null){
+                        gObjs = new ConcurrentLinkedQueue<>();
+                        for (int i = 0; i < jArray.length(); i++){
+                            JSONObject jObj = jArray.getJSONObject(i);
+                            String typeLabel = jObj.getString(TypeLabel);
+                            gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                        }
+                        canvas.drawObjects(gObjs);
+              }
               arrayBees();
               arrayFlies();
               arrayBlossoms();
@@ -565,8 +571,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
               arrayBees();
               arrayFlies();
               arrayBlossoms();
-                break;
-            default:
+              break;
+            case 3:
               gObjs.add(new Blossom(new Position(2,2), 10, 10));
               gObjs.add(new Blossom(new Position(2,8), 4, 10));
               gObjs.add(new Blossom(new Position(8,8), 10, 10));
@@ -574,6 +580,44 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
               arrayBees();
               arrayFlies();
               arrayBlossoms();
+              break;
+              
+            case 4: 
+              break;
+              
+            case 5:
+              break;
+              
+            case 6:
+                
+              break;
+              
+            case 7:
+              break;
+              
+            case 8:
+              gObjs.add(new Blossom(new Position(1,8), 10, 10));
+              gObjs.add(new Blossom(new Position(2,7), 4, 10));
+              gObjs.add(new Blossom(new Position(3,6), 10, 10));
+              gObjs.add(new Blossom(new Position(4,5), 4, 10));
+              gObjs.add(new Blossom(new Position(5,4), 10, 10));
+              gObjs.add(new Blossom(new Position(6,3), 4, 10));
+              gObjs.add(new Blossom(new Position(7,2), 10, 10));
+              gObjs.add(new Blossom(new Position(8,1), 4, 10));
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+              break;
+            
+            case 9:
+              gObjs.add(new Blossom(new Position(2,2), 10, 10));
+              gObjs.add(new Blossom(new Position(2,8), 4, 10));
+              gObjs.add(new Blossom(new Position(8,8), 10, 10));
+              gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+              arrayBees();
+              arrayFlies();
+              arrayBlossoms();
+              break;
         }        
     }
     

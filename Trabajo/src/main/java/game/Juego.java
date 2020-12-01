@@ -6,6 +6,7 @@
 package game;
 
 import common.FileUtilities;
+import common.IToJsonObject;
 import static common.IToJsonObject.TypeLabel;
 import static game.Game_2.CANVAS_WIDTH;
 import static game.Game_2.DOWN_KEY;
@@ -23,9 +24,18 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -80,23 +90,31 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     //Timer falso enemigos
     int timerFly=0;
     int timerBee=0;
-    int moveBee=8;
-    int moveFly=6;
+    int moveBee=6;
+    int moveFly=4;
     
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
     RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
     int screenCounter = 0;
+    String numero;
+    BufferedWriter caracter;
+    BufferedReader escribe;
     
     ArrayList <Bee> abejas= new ArrayList<>();
     ArrayList <Blossom> flores = new ArrayList<>();
     ArrayList <Fly> moscas = new ArrayList<>();
+    
+    String path1= "src/main/resources/games/game.txt";
+    String path2="src/main/resources/games/mapNumber.txt";
+    ConcurrentLinkedQueue <IGameObject> objects = new ConcurrentLinkedQueue<>();
 
     
-    public Juego () throws Exception{
+    public Juego () throws Exception, IOException{
         
         super("Game_1");
         
+ 
 
         
         //Inicializar elementos
@@ -139,6 +157,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                             }
                         }
                         flores.clear();
+                        abejas.clear();
+                        moscas.clear();
                         loadNewBoard(screenCounter);
                         ridingHood.setPosition(new Position(0,0));
                         ridingHood.setValue(0);
@@ -164,8 +184,28 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         cargarPartida.addActionListener( 
                 new ActionListener(){
                     @Override
-                    public void actionPerformed(ActionEvent ae){
-                        System.out.println("Cargar partida");
+                    public void actionPerformed(ActionEvent ae) {
+                        try {
+                            System.out.println("Cargar partida");
+                            JSONArray jArray = FileUtilities.readJsonsFromFile(path1);
+                            if (jArray != null){
+                                gObjs = new ConcurrentLinkedQueue<>();
+                                for (int i = 0; i < jArray.length(); i++){
+                                    JSONObject jObj = jArray.getJSONObject(i);
+                                    String typeLabel = jObj.getString(TypeLabel);
+                                    gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
+                                }
+                                printGameItems();
+                                canvas.drawObjects(gObjs);
+                            }
+                            
+                            escribe = new BufferedReader(new FileReader (path2));
+                            Juego.this.screenCounter= escribe.read()-48;
+                        } catch (FileNotFoundException ex) {
+                            Logger.getLogger(Juego.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException ex) {
+                            Logger.getLogger(Juego.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
                 }
         );
@@ -238,6 +278,43 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         barra = new JMenuBar();
         menuFile = new JMenu("File");
         itSave = new JMenuItem("Save");
+        itSave.addActionListener(new ActionListener(){
+                    @Override
+                    public void actionPerformed(ActionEvent ae){
+                        if (gObjs != null){
+                        JSONObject jObjs [] = new JSONObject[gObjs.size()];
+                        for(int i = 0; i < jObjs.length; i++){
+                            if(i ==0){
+                                jObjs[i] = ridingHood.toJSONObject();
+                            }else if(i <= flores.size()+1){
+                                int contF=0;
+                                jObjs[i] = ((IToJsonObject)flores.get(contF)).toJSONObject();
+                                contF++;
+                            }else if(i <=abejas.size()+flores.size()+1){
+                                int contB=0;
+                                jObjs[i] = ((IToJsonObject)abejas.get(contB)).toJSONObject();
+                                contB++;
+                            }else if(i <=moscas.size()+abejas.size()+flores.size()+1){
+                                int contM=0;
+                                jObjs[i] = ((IToJsonObject)flores.get(contM)).toJSONObject();
+                                contM++;
+                            }
+                        }
+                        FileUtilities.writeJsonsToFile(jObjs, path1);
+                    }
+                    numero=Integer.toString(screenCounter);
+                        try {
+                            caracter= new BufferedWriter(new FileWriter(path2));
+                            caracter.write(numero);
+                            caracter.close();
+                        } catch (IOException ex) {
+                            ex.printStackTrace();
+                        }
+
+                    System.out.println("Partida guardada");
+                    }
+                }
+        );
 
         
         menuFile.add(itSave);
@@ -342,13 +419,18 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         // Logic to change to a new screen.
         if (flores.isEmpty()==true){
             screenCounter++;
-            if(screenCounter > 9)
+            if(screenCounter > 9){
                 screenCounter=7;
+            }
             for(IGameObject delete:gObjs){
                 if(delete != ridingHood){
                     gObjs.remove(delete);
                 }
             }
+            abejas.clear();
+            moscas.clear();
+            ridingHood.setPosition(new Position(0,0));
+            ridingHood.setValue(0);
             ridingHood.incLifes(1);
             loadNewBoard(screenCounter);
         }
@@ -428,11 +510,13 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     private void beeFlower(){
         
         for (Bee abeja:abejas){
-            for (IGameObject gObj:gObjs){
-                if(gObj instanceof Blossom && 
-                        abeja.getPosition().equals(gObj.getPosition())){
-                    gObjs.remove(gObj);
-                    flores.remove((Blossom)gObj);
+            for (Blossom flor:flores){
+                for (IGameObject gObj:gObjs){
+                    if(gObj instanceof Blossom && 
+                            abeja.getPosition().equals(gObj.getPosition()) && flor.getPosition().equals(gObj.getPosition())){
+                        gObjs.remove(gObj);
+                        flores.remove(flor);
+                    }
                 }
             }
         }
@@ -607,6 +691,11 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                   }
                   canvas.drawObjects(gObjs);
               }
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
+                moveBee=4;
+                moveFly=2;
                 break;
               
             case 5:
@@ -620,6 +709,11 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     }
                 canvas.drawObjects(gObjs);
                 }
+                moveBee=4;
+                moveFly=2;
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
                 break;
               
             case 6:
@@ -633,35 +727,152 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     }
                 canvas.drawObjects(gObjs);
                 }
+                moveBee=4;
+                moveFly=2;                
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
                 break;
               
             case 7:
+                gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
+                
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                
+                
+                moveFly=0;
+                moveBee=2;
+                arrayBees();
+                arrayFlies();
+                arrayBlossoms();
                 break;
               
             case 8:
-                gObjs.add(new Blossom(new Position(1,8), 10, 10));
-                gObjs.add(new Blossom(new Position(2,7), 4, 10));
-                gObjs.add(new Blossom(new Position(3,6), 10, 10));
-                gObjs.add(new Blossom(new Position(4,5), 4, 10));
-                gObjs.add(new Blossom(new Position(5,4), 10, 10));
-                gObjs.add(new Blossom(new Position(6,3), 4, 10));
-                gObjs.add(new Blossom(new Position(7,2), 10, 10));
-                gObjs.add(new Blossom(new Position(8,1), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                
+                gObjs.add(new Bee (getRandomPosition(10,10), 12,1));
+                gObjs.add(new Bee (getRandomPosition(10,10), 12,1));
+                gObjs.add(new Bee (getRandomPosition(10,10), 12,1));
+                
+                moveFly=0;
+                moveBee=2;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
                 break;
             
             case 9:
-                gObjs.add(new Blossom(new Position(2,2), 10, 10));
-                gObjs.add(new Blossom(new Position(2,8), 4, 10));
-                gObjs.add(new Blossom(new Position(8,8), 10, 10));
-                gObjs.add(new Blossom(new Position(8,2), 4, 10));  
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 4, 10)); 
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
+                
+                gObjs.add(new Bee (getRandomPosition(10,10), 15,1));
+                gObjs.add(new Bee (getRandomPosition(10,10), 15,1));
+                gObjs.add(new Bee (getRandomPosition(10,10), 15,1));
+                
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));                
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
+                gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
+                
+                moveFly=0;
+                moveBee=2;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
                 break;
         }        
+    }
+    
+    public Position getRandomPosition(int mX, int mY){
+        int x = (int)(mX * Math.random());
+        int y = (int)(mY * Math.random());
+        return new Position(x, y);
+    }
+    
+    public void drawGameItems(ConcurrentLinkedQueue <IGameObject> objects){
+            this.objects = objects;
+            repaint();
+        }
+        private void printGameItems(){
+        System.out.println("Objects Added to Game are: ");
+        for (Iterator<IGameObject> it = gObjs.iterator(); it.hasNext();) {
+            IGameObject obj = it.next();
+            System.out.println( ( (IToJsonObject) obj).toJSONObject());
+        }
     }
     
 }

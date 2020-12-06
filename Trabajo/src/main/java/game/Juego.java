@@ -86,12 +86,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     // Timer
     Timer timer;
     int tick = 200;
+    int iBlossom=1;
+    int iBee ;
+    int iFly ;
     
     //Timer falso enemigos
     int timerFly=0;
     int timerBee=0;
-    int moveBee=6;
-    int moveFly=4;
+    int moveBee=4;
+    int moveFly=2;
     
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
@@ -112,7 +115,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     
     public Juego () throws Exception, IOException{
         
-        super("Game_1");
+        super("Juego");
         
  
 
@@ -190,9 +193,10 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                             JSONArray jArray = FileUtilities.readJsonsFromFile(path1);
                             if (jArray != null){
                                 gObjs = new ConcurrentLinkedQueue<>();
+                                System.out.println(gObjs);
                                 for (int i = 0; i < jArray.length(); i++){
                                     JSONObject jObj = jArray.getJSONObject(i);
-                                    String typeLabel = jObj.getString(TypeLabel);
+                                    System.out.println(jObj);
                                     gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                                 }
                                 printGameItems();
@@ -200,11 +204,9 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                             }
                             
                             escribe = new BufferedReader(new FileReader (path2));
-                            Juego.this.screenCounter= escribe.read()-48;
-                        } catch (FileNotFoundException ex) {
-                            Logger.getLogger(Juego.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IOException ex) {
-                            Logger.getLogger(Juego.class.getName()).log(Level.SEVERE, null, ex);
+                            Juego.this.screenCounter= Character.getNumericValue(escribe.read());
+                        } catch (IOException ex) { 
+                            ex.printStackTrace();
                         }
                     }
                 }
@@ -281,28 +283,32 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         itSave.addActionListener(new ActionListener(){
                     @Override
                     public void actionPerformed(ActionEvent ae){
-                        if (gObjs != null){
-                        JSONObject jObjs [] = new JSONObject[gObjs.size()];
-                        for(int i = 0; i < jObjs.length; i++){
-                            if(i ==0){
-                                jObjs[i] = ridingHood.toJSONObject();
-                            }else if(i <= flores.size()+1){
-                                int contF=0;
-                                jObjs[i] = ((IToJsonObject)flores.get(contF)).toJSONObject();
-                                contF++;
-                            }else if(i <=abejas.size()+flores.size()+1){
-                                int contB=0;
-                                jObjs[i] = ((IToJsonObject)abejas.get(contB)).toJSONObject();
-                                contB++;
-                            }else if(i <=moscas.size()+abejas.size()+flores.size()+1){
-                                int contM=0;
-                                jObjs[i] = ((IToJsonObject)flores.get(contM)).toJSONObject();
-                                contM++;
+                        if(gObjs != null){
+
+                            JSONObject jObjs [] = new JSONObject[gObjs.size()];
+                            int i=0;
+                            for(IGameObject object:gObjs){
+                                    if(object instanceof RidingHood_2){
+                                        jObjs[i] = ((RidingHood_2) object).toJSONObject();
+                                        i++;
+                                    }else
+                                    if(object instanceof Blossom){
+                                        jObjs[i] = ((Blossom) object).toJSONObject();
+                                        i++;
+                                    }else
+                                    if(object instanceof Bee){
+                                        jObjs[i] =((Bee) object).toJSONObject();
+                                        i++;
+                                    }else
+                                    if(object instanceof Fly){
+                                        jObjs[i] =((Fly) object).toJSONObject();
+                                        i++;
+                                }
                             }
-                        }
-                        FileUtilities.writeJsonsToFile(jObjs, path1);
-                    }
-                    numero=Integer.toString(screenCounter);
+                            FileUtilities.writeJsonsToFile(jObjs, path1);
+                        }                     
+                        
+                        numero=Integer.toString(screenCounter);
                         try {
                             caracter= new BufferedWriter(new FileWriter(path2));
                             caracter.write(numero);
@@ -311,7 +317,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                             ex.printStackTrace();
                         }
 
-                    System.out.println("Partida guardada");
+                        System.out.println("Partida guardada");
                     }
                 }
         );
@@ -408,7 +414,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         }
         
         //Comprobación posición abejas sobre las flores y los bordes.
-        beeFlower();
         beeBorder();
         
         //Comprueba si hay otro objeto sobre caperucita.
@@ -417,22 +422,19 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
 
         
         // Logic to change to a new screen.
-        if (flores.isEmpty()==true){
+        if (flores.isEmpty()){
             screenCounter++;
             if(screenCounter > 9){
                 screenCounter=7;
             }
-            for(IGameObject delete:gObjs){
-                if(delete != ridingHood){
-                    gObjs.remove(delete);
-                }
-            }
-            abejas.clear();
-            moscas.clear();
-            ridingHood.setPosition(new Position(0,0));
-            ridingHood.setValue(0);
-            ridingHood.incLifes(1);
+            int valor=ridingHood.getValue();
             loadNewBoard(screenCounter);
+            flores = new ArrayList <>();
+            abejas = new ArrayList <>();
+            moscas = new ArrayList <>();
+            ridingHood = new RidingHood_2((new Position(0,0)), valor, 1);
+            gObjs.add(ridingHood);
+
         }
         
         // Updating graphics and labels
@@ -507,20 +509,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         }
     }
     
-    private void beeFlower(){
-        
-        for (Bee abeja:abejas){
-            for (Blossom flor:flores){
-                for (IGameObject gObj:gObjs){
-                    if(gObj instanceof Blossom && 
-                            abeja.getPosition().equals(gObj.getPosition()) && flor.getPosition().equals(gObj.getPosition())){
-                        gObjs.remove(gObj);
-                        flores.remove(flor);
-                    }
-                }
-            }
-        }
-    }
+
     
     
         /*
@@ -550,8 +539,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         
         Random masMenosUno = new Random();
         for (Fly mosca:moscas){
-            mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(2)));
-            mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(2)));
+            mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(3)));
+            mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(3)));
             if(mosca.getPosition().getX() < 0){
                 mosca.position.x=0;
             }
@@ -570,14 +559,18 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     
     private void movementBee (){
         for (Bee abeja: abejas){
-            if(flores.isEmpty()== false){
-                Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
-                approachTo(abeja.getPosition(), cerca.getPosition());
+            Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
+            approachTo(abeja.getPosition(), cerca.getPosition());
+            if( AbstractGameObject.distance(abeja.getPosition(), cerca.getPosition())==0)
+            {
+                System.out.println(cerca.toString());
+                gObjs.remove(cerca);
+                flores.remove(cerca);
+                if(!flores.isEmpty()){
+                    cerca = (Blossom) AbstractGameObject.getClosest(abeja, flores);
+                }
             }
-            else{
-                abeja.getPosition().x++;
-                abeja.getPosition().y++;
-            }
+  
         }
     }
     
@@ -694,8 +687,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
-                moveBee=4;
-                moveFly=2;
+                moveBee=3;
+                moveFly=1;
                 break;
               
             case 5:
@@ -709,8 +702,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     }
                 canvas.drawObjects(gObjs);
                 }
-                moveBee=4;
-                moveFly=2;
+                moveBee=3;
+                moveFly=1;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
@@ -727,14 +720,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     }
                 canvas.drawObjects(gObjs);
                 }
-                moveBee=4;
-                moveFly=2;                
+                moveBee=2;
+                moveFly=0;                
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
                 break;
               
             case 7:
+                gObjs = new ConcurrentLinkedQueue<>();
                 gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
                 gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
                 gObjs.add(new Fly ( getRandomPosition(10,10),9,1));
@@ -762,13 +756,14 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 
                 
                 moveFly=0;
-                moveBee=2;
+                moveBee=1;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
                 break;
               
             case 8:
+                gObjs = new ConcurrentLinkedQueue<>();
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
@@ -799,13 +794,14 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 gObjs.add(new Bee (getRandomPosition(10,10), 12,1));
                 
                 moveFly=0;
-                moveBee=2;
+                moveBee=1;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();
                 break;
             
             case 9:
+                gObjs = new ConcurrentLinkedQueue<>();
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
                 gObjs.add(new Blossom(getRandomPosition(10,10), 10, 10));
@@ -849,7 +845,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 gObjs.add(new Fly ( getRandomPosition(10,10),12,1));
                 
                 moveFly=0;
-                moveBee=2;
+                moveBee=1;
                 arrayBees();
                 arrayFlies();
                 arrayBlossoms();

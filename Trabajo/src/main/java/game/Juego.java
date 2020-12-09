@@ -424,14 +424,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         // Logic to change to a new screen.
         if (flores.isEmpty()){
             screenCounter++;
+            flores = new ArrayList <>();
+            abejas = new ArrayList <>();
+            moscas = new ArrayList <>();
             if(screenCounter > 9){
                 screenCounter=7;
             }
             int valor=ridingHood.getValue();
             loadNewBoard(screenCounter);
-            flores = new ArrayList <>();
-            abejas = new ArrayList <>();
-            moscas = new ArrayList <>();
+
             ridingHood = new RidingHood_2((new Position(0,0)), valor, 1);
             gObjs.add(ridingHood);
 
@@ -447,6 +448,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (IGameObject gObj:gObjs){
             if(gObj instanceof Bee){
                 abejas.add((Bee) gObj);
+                System.out.println(gObj.toString());
             }   
         }
         return abejas;
@@ -456,6 +458,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (IGameObject gObj:gObjs){
             if(gObj instanceof Blossom){
                 flores.add((Blossom) gObj);
+                System.out.println(gObj.toString());
             }   
         }
         return flores;
@@ -465,6 +468,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (IGameObject gObj:gObjs){
             if(gObj instanceof Fly){
                 moscas.add((Fly) gObj);
+                System.out.println(gObj.toString());
             }   
         }
         return moscas;
@@ -477,16 +481,19 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 ridingHood.setValue(v);
                 gObjs.remove(gObj);
                 flores.remove((Blossom) gObj);
+                
             }
             else if(gObj instanceof Fly && rhPos.isEqual(gObj.getPosition())){
                 int v = ridingHood.getValue() - gObj.getValue();
                 ridingHood.setValue(v);
                 gObjs.remove(gObj);
                 moscas.remove((Fly) gObj);
+                System.out.println("Caperucita se ha tropezado con una mosca.");
             }
             else if(gObj instanceof Bee && rhPos.isEqual(gObj.getPosition())){
                 int v = ridingHood.getValue() - gObj.getValue();
                 ridingHood.setValue(v);
+                System.out.println("Caperucita se ha tropezado con una abeja.");
             }
         }
     }
@@ -503,8 +510,10 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     || gObj.getPosition().y<0||
                     gObj.getPosition().x> lastBox
                     ||gObj.getPosition().y > lastBox)){
+                System.out.println("Abeja eliminada en: "+gObj.getPosition().toString());
                 gObjs.remove(gObj);
                 abejas.remove((Bee) gObj);
+                
             }
         }
     }
@@ -541,6 +550,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (Fly mosca:moscas){
             mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(3)));
             mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(3)));
+            System.out.println(mosca.position);
             if(mosca.getPosition().getX() < 0){
                 mosca.position.x=0;
             }
@@ -561,6 +571,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (Bee abeja: abejas){
             Blossom cerca= (Blossom)AbstractGameObject.getClosest(abeja, flores);
             approachTo(abeja.getPosition(), cerca.getPosition());
+            System.out.println(abeja.position);
             if( AbstractGameObject.distance(abeja.getPosition(), cerca.getPosition())==0)
             {
                 System.out.println(cerca.toString());

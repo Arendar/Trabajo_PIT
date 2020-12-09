@@ -20,3 +20,4 @@
 {"mode":0,"lifes":1,"GIT_type":"Blossom","position":{"GIT_type":"Position","x":10,"y":2},"value":10}
 {"mode":0,"lifes":1,"GIT_type":"Blossom","position":{"GIT_type":"Position","x":9,"y":1},"value":10}
 {"mode":0,"lifes":1,"GIT_type":"Blossom","position":{"GIT_type":"Position","x":8,"y":2},"value":10}
+

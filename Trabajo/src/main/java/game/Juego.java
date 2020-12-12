@@ -98,7 +98,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
     
     // Game Variables
     ConcurrentLinkedQueue<IGameObject> gObjs = new ConcurrentLinkedQueue<>();
-    RidingHood_2 ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
+    RidingHood_2 ridingHood; 
     int screenCounter = 0;
     String numero;
     String numeroAbeja;
@@ -126,7 +126,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         super("Juego");
         
  
-
+        ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
         
         //Inicializar elementos
         gObjs.add(ridingHood);
@@ -167,12 +167,17 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                         abejas= new ArrayList();
                         moscas = new ArrayList();
                         loadNewBoard(screenCounter);
-                        ridingHood.setPosition(new Position(0,0));
-                        ridingHood.setValue(0);
-                        ridingHood.setLifes(1);
+                        ridingHood = new RidingHood_2(new Position(0,0), 0, 1);
+                        gObjs.add(ridingHood);
                         timer = new Timer (tick, Juego.this);
                         moveBee=4;
                         moveFly=2;
+                        dataLabel.setText(ridingHood.toString());
+                        canvas.drawObjects(gObjs);
+                        System.out.println(flores);
+                        System.out.println(abejas);
+                        System.out.println(moscas);
+                        System.out.println(ridingHood);
                     }
                 }
         );
@@ -195,6 +200,10 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                        
+                            gObjs = new ConcurrentLinkedQueue<>();
+                            flores = new ArrayList<>();
+                            moscas = new ArrayList<>();
+                            abejas= new ArrayList <>();
                             System.out.println("Cargar partida");
                             try {
                                 escribe = new BufferedReader(new FileReader (path2));
@@ -209,20 +218,13 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                             }
                             JSONArray jArray = FileUtilities.readJsonsFromFile(path1);
                             if (jArray != null){
-                                gObjs = new ConcurrentLinkedQueue<>();
-                                flores = new ArrayList<>();
-                                moscas = new ArrayList<>();
-                                abejas= new ArrayList <>();
+                                
                                 System.out.println(gObjs);
                                 for (int i = 0; i < jArray.length(); i++){
                                         JSONObject jObj = jArray.getJSONObject(i);
                                         System.out.println(jObj);
-                                        if(GameObjectsJSONFactory.getGameObject(jObj) instanceof RidingHood_2){
-                                            ridingHood= (RidingHood_2) GameObjectsJSONFactory.getGameObject(jObj);
-                                            gObjs.add(ridingHood);
-                                        }else{
-                                            gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));    
-                                        }
+                                        IGameObject juego =GameObjectsJSONFactory.getGameObject(jObj);    
+                                        gObjs.add(juego);
                                 }
                                 for(IGameObject object:gObjs){
                                     if(object instanceof Blossom){
@@ -236,8 +238,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                                         moscas.add((Fly)object);
                                     }
                                 }
+                                timer = new Timer (tick, Juego.this);
+                                enableKey=true;
                                 printGameItems();
+                                dataLabel.setText(ridingHood.toString());
                                 canvas.drawObjects(gObjs);
+                                System.out.println(flores);
+                                System.out.println(abejas);
+                                System.out.println(moscas);
+                                System.out.println(ridingHood);
                             }  
                     }
                 }
@@ -437,21 +446,29 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         setInLimits();
         
         //Moving abejas
-        if(timerBee==moveBee){
-            movementBee();
-            timerBee=0;
+        if(!abejas.isEmpty()){
+            if(timerBee==moveBee){
+                movementBee();
+                timerBee=0;
+            }else{
+                timerBee++;
+            }
         }else{
-            timerBee++;
+            timerBee=0;
         }
+        
         
         //Moving moscas
-        if(timerFly==moveFly){
-            movementFly();
-            timerFly=0;
+        if(!moscas.isEmpty()){
+            if(timerFly==moveFly){
+                movementFly();
+                timerFly=0;
+            }else{
+                timerFly++;
+            }
         }else{
-            timerFly++;
+            timerFly=0;
         }
-        
         //Comprobación posición abejas sobre las flores y los bordes.
         beeBorder();
         
@@ -463,6 +480,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         // Logic to change to a new screen.
         if (flores.isEmpty()){
             screenCounter++;
+            ridingHood.setLifes(ridingHood.lifes+1);
             flores = new ArrayList <>();
             abejas = new ArrayList <>();
             moscas = new ArrayList <>();
@@ -470,10 +488,15 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                 screenCounter=7;
             }
             int valor=ridingHood.getValue();
+            int vidas = ridingHood.getLifes();
             loadNewBoard(screenCounter);
 
-            ridingHood = new RidingHood_2((new Position(0,0)), valor, 1);
+            ridingHood = new RidingHood_2((new Position(0,0)), valor, vidas);
             gObjs.add(ridingHood);
+            System.out.println(flores);
+            System.out.println(abejas);
+            System.out.println(moscas);
+            System.out.println(ridingHood);
 
         }
         
@@ -589,7 +612,7 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         for (Fly mosca:moscas){
             mosca.getPosition().setX(mosca.getPosition().x +(1-masMenosUno.nextInt(3)));
             mosca.getPosition().setY(mosca.getPosition().y+(1-masMenosUno.nextInt(3)));
-            System.out.println(mosca.position);
+            System.out.println("Posición mosca: "+mosca.position);
             if(mosca.getPosition().getX() < 0){
                 mosca.position.x=0;
             }
@@ -683,7 +706,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
               if (jArray != null){
                   for (int i = 0; i < jArray.length(); i++){
                             JSONObject jObj = jArray.getJSONObject(i);
-                            String typeLabel = jObj.getString(TypeLabel);
                             gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                   }
                   canvas.drawObjects(gObjs);
@@ -698,7 +720,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                   gObjs = new ConcurrentLinkedQueue<>();
                   for (int i = 0; i < jArray1.length(); i++){
                             JSONObject jObj = jArray1.getJSONObject(i);
-                            String typeLabel = jObj.getString(TypeLabel);
                             gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                   }
                   canvas.drawObjects(gObjs);
@@ -713,7 +734,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                   gObjs = new ConcurrentLinkedQueue<>();
                   for (int i = 0; i < jArray2.length(); i++){
                             JSONObject jObj = jArray2.getJSONObject(i);
-                            String typeLabel = jObj.getString(TypeLabel);
                             gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                   }
                   canvas.drawObjects(gObjs);
@@ -729,7 +749,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                   gObjs = new ConcurrentLinkedQueue<>();
                   for (int i = 0; i < jArray3.length(); i++){
                             JSONObject jObj = jArray3.getJSONObject(i);
-                            String typeLabel = jObj.getString(TypeLabel);
                             gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                   }
                   canvas.drawObjects(gObjs);
@@ -747,7 +766,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     gObjs = new ConcurrentLinkedQueue<>();
                     for (int i = 0; i < jArray4.length(); i++){
                         JSONObject jObj = jArray4.getJSONObject(i);
-                        String typeLabel = jObj.getString(TypeLabel);
                         gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                     }
                 canvas.drawObjects(gObjs);
@@ -765,7 +783,6 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
                     gObjs = new ConcurrentLinkedQueue<>();
                     for (int i = 0; i < jArray5.length(); i++){
                         JSONObject jObj = jArray5.getJSONObject(i);
-                        String typeLabel = jObj.getString(TypeLabel);
                         gObjs.add(GameObjectsJSONFactory.getGameObject(jObj));
                     }
                 canvas.drawObjects(gObjs);
@@ -909,11 +926,8 @@ public class Juego extends JFrame implements KeyListener, ActionListener {
         return new Position(x, y);
     }
     
-    public void drawGameItems(ConcurrentLinkedQueue <IGameObject> objects){
-            this.objects = objects;
-            repaint();
-        }
-        private void printGameItems(){
+    
+    private void printGameItems(){
         System.out.println("Objects Added to Game are: ");
         for (Iterator<IGameObject> it = gObjs.iterator(); it.hasNext();) {
             IGameObject obj = it.next();

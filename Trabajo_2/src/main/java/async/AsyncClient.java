@@ -6,6 +6,8 @@
 package async;
 
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
@@ -15,7 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
-public class AsyncClient extends JFrame {
+public class AsyncClient extends JFrame implements ActionListener {
     
     public static final int CANVAS_WIDTH = 240;
     public static final int BOX_SIZE = 20;
@@ -45,16 +47,21 @@ public class AsyncClient extends JFrame {
         mFixedPool = new JMenu ("Fixed Pool");
         itThreeThreads = new JMenuItem ("Three Threads");
         itFiveThreads = new JMenuItem ("Five Threads");
-        itFlexiblePool = new JMenuItem ("Flexible Pool");
+        itFlexiblePool = new JMenuItem ("Resizable Pool");
         itSingleThreaded = new JMenuItem ("Single Thread");
+        
+        itThreeThreads.addActionListener(this);
+        itFiveThreads.addActionListener(this);
+        itFlexiblePool.addActionListener(this);
+        itSingleThreaded.addActionListener(this);
         
         mFixedPool.add(itThreeThreads);
         mFixedPool.add(itFiveThreads);
         mSeleccionEjecutor.add(itFlexiblePool);
         mSeleccionEjecutor.add(itSingleThreaded);
-        mSeleccionEjecutor.add(mSeleccionEjecutor);
+        mSeleccionEjecutor.add(mFixedPool);
         barraMenu.add(mSeleccionEjecutor);
-        add(barraMenu);
+        setJMenuBar(barraMenu);
         
         for (int i = 0; i < client.length; i++){
             client[i] = new AsyncClientPanel(i, CANVAS_WIDTH, BOX_SIZE);       
@@ -69,7 +76,7 @@ public class AsyncClient extends JFrame {
         this.setFocusable(true);
         
         // Set default loader for panels.
-        ExecutorService fileLoader = Executors.newFixedThreadPool(3);
+        ExecutorService fileLoader = Executors.newSingleThreadExecutor();
         for (AsyncClientPanel panel : client){
             try {
                 panel.setLoader(fileLoader);
@@ -80,11 +87,61 @@ public class AsyncClient extends JFrame {
         
     }
     
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if(e.getSource()== itThreeThreads){
+            
+            fileLoader = Executors.newFixedThreadPool(3);
+            for (AsyncClientPanel panel : client){
+                try {
+                    panel.setLoader(fileLoader);
+                    System.out.println("Cargador de ficheros usado: "+panel.fileLoader);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AsyncClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        }else if(e.getSource() == itFiveThreads){
+            
+            fileLoader= Executors.newFixedThreadPool(5);
+            for (AsyncClientPanel panel : client){
+                try {
+                    panel.setLoader(fileLoader);
+                    System.out.println("Cargador de ficheros usado: "+panel.fileLoader);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AsyncClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+        }else if(e.getSource() == itFlexiblePool){
+            fileLoader= Executors.newCachedThreadPool();
+            for (AsyncClientPanel panel : client){
+                try {
+                    panel.setLoader(fileLoader);
+                    System.out.println("Cargador de ficheros usado: "+panel.fileLoader);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AsyncClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }else if(e.getSource() == itSingleThreaded){
+            fileLoader= Executors.newSingleThreadExecutor();
+            for (AsyncClientPanel panel : client){
+                try {
+                    panel.setLoader(fileLoader);
+                    System.out.println("Cargador de ficheros usado: "+panel.fileLoader);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(AsyncClient.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
 
     
     public static void main(String [] args) throws Exception{
        AsyncClient gui = new AsyncClient();
     } 
+
+    
 }    
     
     
